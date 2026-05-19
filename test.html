@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Self-test — Charity Legacy Interest Calculator</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .pass { color: #14532d; }
+    .fail { color: #9b1c1c; font-weight: 700; }
+    pre { background: #fff; border: 1px solid #d8d8d8; padding: 1rem; border-radius: 6px; overflow:auto; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Self-test</h1>
+    <p class="intro">
+      Runs <code>rates.json</code> validation plus golden-value assertions
+      against <code>calculator.js</code>. This page is part of the audit
+      trail — if every line is green, the live calculator is using the same
+      verified logic.
+    </p>
+    <div id="out" class="card"><pre id="log">Running…</pre></div>
+    <p class="footer-links"><a href="index.html">← Back to the calculator</a></p>
+  </main>
+
+  <script src="calculator.js"></script>
+  <script>
+    var log = document.getElementById('log');
+    var lines = [];
+    var failed = 0;
+
+    function ok(cond, msg) {
+      lines.push((cond ? '  PASS  ' : '  FAIL  ') + msg);
+      if (!cond) failed++;
+    }
+    function near(a, b, eps, msg) {
+      ok(Math.abs(a - b) < (eps || 0.005), msg + ' (got ' + a.toFixed(4) + ', expected ' + b + ')');
+    }
+
+    fetch('./rates.json', { cache: 'no-cache' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        // 1. Rate-table validation
+        var v = Calc.validateRates(data);
+        ok(v.errors.length === 0,
+          'rates.json validation: ' +
+          (v.errors.length ? v.errors.join(' | ') : 'no errors'));
+        lines.push('  INFO  ' + v.warnings.length + ' source warning(s) (expected for pre-2022 bands)');
+
+        // 2. Golden value (spec §9): £3,000, DoD 15/07/2022, paid 13/02/2025
+        var res = Calc.compute(
+          3000,
+          Calc.parseISODate('2022-07-15'),
+          Calc.parseISODate('2025-02-13'),
+          data.bands
+        );
+        near(res.totalInterest, 208.22, 0.005, 'Golden: total interest = £208.22');
+        near(res.totalOwed, 3208.22, 0.005, 'Golden: total owed = £3,208.22');
+        ok(res.anniversary.toISOString().slice(0, 10) === '2023-07-15',
+          'Golden: anniversary = 2023-07-15');
+
+        // 3. Interest is zero when paid on/before the anniversary
+        var z = Calc.compute(
+          5000,
+          Calc.parseISODate('2020-01-10'),
+          Calc.parseISODate('2021-01-10'),
+          data.bands
+        );
+        near(z.totalInterest, 0, 0.0001, 'Paid on the anniversary → £0 interest');
+        ok(z.rows.length === data.bands.length,
+          'Breakdown still renders every band when interest is £0');
+
+        // 4. daysInBand is inclusive of both ends
+        var d = Calc.daysInBand(
+          { start: '2024-01-01', end: '2024-01-31' },
+          Calc.parseISODate('2024-01-01'),
+          Calc.parseISODate('2024-01-31')
+        );
+        ok(d === 31, 'daysInBand inclusive: Jan 2024 fully = 31 days (got ' + d + ')');
+
+        // 5. 29 Feb date of death → 1 Mar anniversary the next year
+        var anniv = Calc.anniversaryOf(Calc.parseISODate('2024-02-29'));
+        ok(anniv.toISOString().slice(0, 10) === '2025-03-01',
+          '29 Feb 2024 DoD → anniversary 1 Mar 2025 (got ' +
+          anniv.toISOString().slice(0, 10) + ')');
+
+        finish();
+      })
+      .catch(function (e) {
+        lines.push('  FAIL  could not load rates.json: ' + e.message);
+        failed++;
+        finish();
+      });
+
+    function finish() {
+      var header = failed === 0
+        ? 'ALL TESTS PASSED\n\n'
+        : failed + ' TEST(S) FAILED\n\n';
+      log.textContent = header + lines.join('\n');
+      log.className = failed === 0 ? 'pass' : 'fail';
+      document.title = (failed === 0 ? '✔ ' : '✘ ') + 'Self-test';
+    }
+  </script>
+</body>
+</html>

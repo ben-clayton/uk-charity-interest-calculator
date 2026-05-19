@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Charity Legacy Interest Calculator</title>
+  <meta name="description" content="Calculates interest owed on a delayed charity legacy, using the Court Funds Office Basic Account rate.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <h1>Charity Legacy Interest Calculator</h1>
+    <p class="intro">
+      Calculates interest owed on a legacy to a charity where payment was
+      delayed beyond the <strong>first anniversary of the date of death</strong>.
+      Uses simple interest on the original amount, at the Court Funds Office
+      (CFO) Basic Account rate. All calculation happens in your browser —
+      nothing is sent anywhere.
+    </p>
+
+    <section id="inputs" class="card no-print">
+      <h2>Inputs</h2>
+      <div class="field">
+        <label for="amount">Initial amount (£)</label>
+        <input type="number" id="amount" min="0" step="0.01" value="3000" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="dod">Date of death</label>
+        <input type="date" id="dod" value="2022-07-15">
+      </div>
+      <div class="field">
+        <label for="endPaid">End date (paid)</label>
+        <input type="date" id="endPaid" value="2025-02-13">
+      </div>
+      <p class="hint">Figures update as you type.</p>
+    </section>
+
+    <div id="error-banner" class="banner error" hidden></div>
+
+    <section id="summary" class="card" hidden>
+      <h2>Summary</h2>
+      <table class="summary-table">
+        <tbody>
+          <tr><th>Initial amount</th><td id="s-amount"></td></tr>
+          <tr><th>Date of death</th><td id="s-dod"></td></tr>
+          <tr><th>Anniversary of death</th><td id="s-anniv"></td></tr>
+          <tr><th>End date (paid)</th><td id="s-end"></td></tr>
+          <tr><th>Total interest</th><td id="s-interest"></td></tr>
+          <tr class="grand"><th>Total owed</th><td id="s-owed"></td></tr>
+        </tbody>
+      </table>
+      <div class="actions no-print">
+        <button type="button" id="copy-btn">Copy as plain text</button>
+        <button type="button" id="link-btn">Copy shareable link</button>
+        <button type="button" id="print-btn">Print / save PDF</button>
+        <span id="copy-confirm" class="copy-confirm" hidden>Copied.</span>
+      </div>
+    </section>
+
+    <section id="breakdown" class="card" hidden>
+      <h2>Breakdown by rate band</h2>
+      <table class="breakdown-table">
+        <thead>
+          <tr>
+            <th>Interest rate</th>
+            <th>First day</th>
+            <th>Last day</th>
+            <th class="num">Days in interval</th>
+            <th class="num">Interest</th>
+            <th class="num">Cumulative total owed</th>
+          </tr>
+        </thead>
+        <tbody id="breakdown-body"></tbody>
+      </table>
+    </section>
+
+    <div id="warn-banner" class="banner warn" hidden></div>
+
+    <footer>
+      <p id="verified-badge" class="badge"></p>
+      <p class="footer-links">
+        <a id="edit-rates-link" href="#" target="_blank" rel="noopener">
+          ✎ Suggest a rate change (opens a GitHub edit / pull request)
+        </a>
+      </p>
+      <p class="footer-links">
+        <a id="repo-link" href="#" target="_blank" rel="noopener">Source code &amp; how it works</a>
+      </p>
+      <p class="disclaimer">
+        Day count: 365 days/year, simple interest on the original amount —
+        matching the original spreadsheet. Whether the CFO Basic Account
+        rate is the legally correct rate for a given legacy claim should be
+        confirmed with the charity's legal advisors.
+      </p>
+      <p class="disclaimer">
+        <strong>Disclaimer.</strong> This tool is provided free of charge,
+        on an "as is" and "as available" basis, as a best-efforts
+        convenience only. It does not constitute legal, financial,
+        accounting or tax advice and must not be relied upon as such. While
+        the interest rates and calculations are compiled in good faith from
+        publicly available sources believed to be accurate, no
+        representation, warranty or guarantee of any kind, express or
+        implied, is given as to their accuracy, completeness, currency or
+        fitness for any particular purpose, and the underlying data may be
+        incomplete, out of date or contain errors. Any figures produced
+        should be independently verified against the official source
+        announcements and, where a legal entitlement may turn on them,
+        confirmed with a suitably qualified professional adviser before
+        being relied upon. To the fullest extent permitted by law, the
+        author accepts no responsibility or liability whatsoever for any
+        loss, damage, cost or claim arising directly or indirectly from any
+        use of, or reliance on, this tool or any information it produces.
+        Use of this tool constitutes acceptance of these terms.
+      </p>
+    </footer>
+  </main>
+
+  <script src="calculator.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
